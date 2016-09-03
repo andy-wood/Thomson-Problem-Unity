@@ -7,8 +7,6 @@ public class Points : MonoBehaviour {
 	const int nInitialPoints = 3;
 	const float targetDistance = 5.0f;
 	const float sphereScale = 0.5f;
-	const float convergenceSpeed = 0.05f;
-	const float stressExponent = 1.0f;
 
 	List<GameObject> spheres;
 	GameObject shape;
@@ -24,10 +22,6 @@ public class Points : MonoBehaviour {
 
 	void Update () 
 	{
-		// pair-force solution
-		// minimize ();
-
-		// monte carlo solution
 		search ();
 		move ();
 
@@ -264,60 +258,5 @@ public class Points : MonoBehaviour {
 
 		for (int i = 0; i < positions.Count; ++i)
 			positions[i] *= scale;
-	}
-
-	void minimize()
-	{
-		float averageDistance = 0;
-
-		for (int i = 0; i < spheres.Count; ++i)
-			for (int j = i + 1; j < spheres.Count; ++j)
-				averageDistance += (spheres [i].transform.localPosition - spheres [j].transform.localPosition).magnitude;
-
-		averageDistance /= numPairs (spheres.Count);;
-
-		Vector3[,] forceVectors = new Vector3[spheres.Count, spheres.Count];
-
-		for (int i = 0; i < spheres.Count; ++i)
-		{
-			for (int j = i + 1; j < spheres.Count; ++j)
-			{
-				Vector3 vector = spheres [i].transform.localPosition - spheres [j].transform.localPosition;
-				// Vector3 velocity = vector.normalized * convergenceSpeed * Mathf.Pow(Mathf.Abs (vector.magnitude - averageDistance), stressExponent);
-
-				if ((vector.magnitude < averageDistance && vector.magnitude < targetDistance) ||
-					(vector.magnitude > averageDistance && vector.magnitude > targetDistance))
-				{
-					forceVectors [i, j] = 
-						vector.normalized * convergenceSpeed *
-						(vector.magnitude - averageDistance); /* 
-						Mathf.Max(Mathf.Pow(vector.magnitude, stressExponent), 1.0f);*/
-				}
-			}
-		}
-
-		for (int i = 0; i < spheres.Count; ++i)
-		{
-			for (int j = i + 1; j < spheres.Count; ++j)
-			{
-				spheres [i].transform.localPosition -= forceVectors[i, j];
-				spheres [j].transform.localPosition += forceVectors[i, j];
-			}
-		}
-
-		center ();
-	}
-
-	void center()
-	{
-		Vector3 center = new Vector3();
-
-		foreach (var sphere in spheres)
-			center += sphere.transform.localPosition;
-
-		center /= spheres.Count;
-
-		foreach (var sphere in spheres)
-			sphere.transform.localPosition -= center;
 	}
 }
